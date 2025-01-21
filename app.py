@@ -97,7 +97,6 @@ import os
 import onnx
 import onnxruntime as ort
 import numpy as np
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
 # Inisialisasi aplikasi Flask
 app = Flask(__name__)

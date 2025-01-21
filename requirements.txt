@@ -3,3 +3,4 @@ numpy
 onnx
 onnxruntime
 opencv-python
+tensorflow
