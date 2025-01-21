@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klasifikasi Penyakit Daun Cabai</title>
+    <style>
+        /* Mengatur gambar latar belakang */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: url('static/gambar.png'); /* Ganti dengan nama gambar latar Anda */
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+
+        /* Styling untuk container */
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8); /* Latar belakang transparan */
+            padding: 20px;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        /* Styling judul */
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+            margin-bottom: 20px;
+        }
+
+        /* Styling kotak upload gambar */
+        .image-upload {
+            position: relative;
+            width: 100%;
+            height: 300px; /* Ukuran tetap untuk tinggi kotak */
+            border: 2px dashed #2e7d32;
+            border-radius: 8px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .image-upload input[type="file"] {
+            display: none;
+        }
+
+        /* Styling gambar yang diunggah */
+        .image-upload img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Menjaga proporsi gambar */
+            display: none; /* Disembunyikan dulu, akan ditampilkan setelah ada gambar */
+        }
+
+        /* Styling tombol */
+        .button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #0288d1;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #0277bd;
+        }
+
+        /* Styling hasil prediksi */
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            display: none; /* Disembunyikan sampai hasil tersedia */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="title">KLASIFIKASI PENYAKIT DAUN CABAI MERAH</div>
+        <label class="image-upload" for="file-input">
+            <span>Pilih Gambar</span>
+            <img id="preview-image" src="" alt="Preview Image"> <!-- Elemen gambar untuk preview -->
+            <input id="file-input" type="file" accept="image/*" />
+        </label>
+        <button id="classify-button" class="button">Klasifikasikan</button>
+        <div id="result" class="result"></div> <!-- Elemen untuk menampilkan hasil -->
+    </div>
+
+    <script>
+        // Script untuk menangani pilihan gambar
+        const fileInput = document.getElementById('file-input');
+        const previewImage = document.getElementById('preview-image');
+        const imageUploadLabel = document.querySelector('.image-upload span');
+        const classifyButton = document.getElementById('classify-button');
+        const resultDiv = document.getElementById('result');
+
+        let selectedFile = null;
+
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file; // Simpan file yang dipilih
+                imageUploadLabel.style.display = 'none'; // Sembunyikan teks 'Pilih Gambar'
+                
+                // Baca file gambar dan tampilkan sebagai preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result; // Set source gambar
+                    previewImage.style.display = 'block'; // Tampilkan gambar
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        classifyButton.addEventListener('click', function() {
+            if (!selectedFile) {
+                alert("Pilih gambar terlebih dahulu!");
+                return;
+            }
+
+            // Kirim file gambar ke server Flask
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            fetch('http://127.0.0.1:5000/classify', { // URL endpoint Flask
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Tampilkan hasil klasifikasi
+                if (data.predicted_class) {
+                    resultDiv.innerHTML = `Hasil Klasifikasi: <strong>${data.predicted_class}</strong>`;
+                    resultDiv.style.display = 'block'; // Tampilkan hasil
+                } else {
+                    resultDiv.innerHTML = `Terjadi kesalahan: ${data.error}`;
+                    resultDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat mengirim gambar!');
+            });
+        });
+    </script>
+
+</body>
+</html>
